@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.3.0/bootbox.min.js"></script>
+<style>
+    td {padding: 10px 20px; text-align: center;}
+    th {padding: 10px 20px;}
+.center {
+    margin-left: auto;
+    margin-right: auto;
+    width: 70%;
+}
+.modal_td {
+    text-align: left;
+}
+.pager {
+  margin-left: 0;
+  margin-bottom: 18px;
+  list-style: none;
+  text-align: center;
+  *zoom: 1;
+}
+.pager:before,
+.pager:after {
+  display: table;
+  content: "";
+}
+.pager:after {
+  clear: both;
+}
+.pager li {
+  display: inline;
+}
+.pager a, p {
+  display: inline-block;
+  padding: 5px 14px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  -webkit-border-radius: 15px;
+  -moz-border-radius: 15px;
+  border-radius: 15px;
+}
+.pager a:hover {
+  text-decoration: none;
+  background-color: #f5f5f5;
+}
+.pager .next a {
+  float: right;
+}
+.pager .previous a {
+  float: left;
+}
+.pager .disabled a,
+.pager .disabled a:hover {
+  color: #999999;
+  background-color: #fff;
+  cursor: default;
+}
+tr:nth-child(even) {background: #CCC}
+tr:nth-child(odd) {background: #FFF}
+
+</style>
+
+</head>
+<body>
+
+<div class="center">
+
+<ul class="pager">
+  <li>
+    <a id="prev-date">Previous</a>
+  </li>
+  <li>
+    <p id="current-date"></p>
+  </li>
+  <li>
+    <a id="next-date">Next</a>
+  </li>
+</ul>
+
+
+<table id="data-table">
+    <tr>
+<!--         <th>Date</th> -->
+        <th>Unit</th>
+        <th>Total Responses</th>
+        <th>Field Investigations</th>
+        <th>Avg. Response Time</th>
+        <th>Max Response Time</th>
+<!--         <th>Min Response Time</th> -->
+        <th>Total Time Dispatched</th>
+    </tr>
+</table>
+</div>
+
+<script>
+
+function showDetailsModal( details ){
+    return function(){
+        modalHtml = '<table><tr><th>Time</th><th>Type</th><th>Location</th><th>Response Time</th></tr>';
+        for (j=0; j<details.length; j++) {
+            modalHtml += '<tr><td class="modal_td">' + details[j].call_time +
+                         '</td><td class="modal_td">' + details[j].call_type +
+                         '</td><td class="modal_td">' + details[j].call_location +
+                         '</td><td class="modal_td">' + details[j].resp_time + '</td></tr>';
+        }
+        modalHtml += '</table>';
+        bootbox.dialog({title: 'Response Details', message: modalHtml});
+    }
+}
+
+$(document).ready(function(){
+
+    var selectedDate = new Date("{{year}}", "{{month}}" - 1, "{{day}}"),
+        nextDateRaw = new Date(selectedDate.getTime() + 86400000),
+        prevDateRaw = new Date(selectedDate.getTime() - 86400000),
+        dowMap = {0: "Sun", 1: "Mon", 2: "Tues", 3: "Wed", 4: "Thurs", 5: "Fri", 6: "Sat"},
+        monthMap = {0: "Jan", 1: "Feb", 2: "Mar", 3: "Apr", 4: "May"}
+
+    $("#current-date").text(dowMap[selectedDate.getDay()] + ", " +
+                            monthMap[selectedDate.getMonth()] + " " +
+                            selectedDate.getDate() + ", " +
+                            selectedDate.getFullYear()
+                            );
+
+    $("#next-date").attr("href", "/dashboard/?month=" + (nextDateRaw.getMonth() + 1) +
+                                 "&day=" + nextDateRaw.getDate() +
+                                 "&year=" + nextDateRaw.getFullYear());
+
+    $("#prev-date").attr("href", "/dashboard/?month=" + (prevDateRaw.getMonth() + 1) +
+                                 "&day=" + prevDateRaw.getDate() +
+                                 "&year=" + prevDateRaw.getFullYear());
+
+    var x = JSON.parse("{{results_json}}".replace(/&quot;/g,'"'));
+
+    for (i=0; i<x.length; i++) {
+        $("#data-table").append(
+                                // "<tr><td>" + x[i].date +
+                                // "</td>
+                                "<tr><td><a href=/where/?unitid=" + x[i].unitid +
+                                             "&month=" + {{month}}  +
+                                             "&day=" + {{day}} +
+                                             "&year=" + {{year}} +
+                                             " target='_blank'>" + x[i].unitid + "</a>" +
+                                // "</td><td><a href='#' id='detailsLink_" + i + "' >" + x[i].count + "</a>" +
+
+                                "</td><td><a href=/timing/?unitid=" + x[i].unitid +
+                                             "&month=" + {{month}}  +
+                                             "&day=" + {{day}} +
+                                             "&year=" + {{year}} +
+                                             " target='_blank'>" + x[i].count + "</a>" +
+
+                                "</td><td>" + x[i].fi +
+                                "</td><td>" + x[i].avg +
+                                "</td><td>" + x[i].max +
+                                // "</td><td>" + x[i].min +
+                                "</td><td>" + x[i].pct_onscene +
+                                "</td></tr>");    }
+});
+
+</script>
+
+</body>
+</html>

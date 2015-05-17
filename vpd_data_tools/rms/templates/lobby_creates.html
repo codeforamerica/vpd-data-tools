@@ -1,0 +1,30 @@
+<head>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+</head>
+
+<body>
+
+<table id="lobby_creates" class="table">
+    <thead id="lobby_creates_head"></thead>
+    <tbody id="lobby_creates_body"></tbody>
+</table>
+
+<script>
+$(document).ready(function(){
+    var data = JSON.parse("{{results}}".replace(/&quot;/g,'"'));
+    $("#lobby_creates_head").append("<tr><th>Day of Week</th><th>Hour of Day</th><th>Count</th></th></tr>")
+    for (var i=0; i<data.length; i++){
+        $("#lobby_creates_body").append("<tr><td>" + data[i].dow + "</td><td>" + data[i].hour + "</td><td>" + data[i].count + "</td></tr>")
+    }
+});
+</script>
+
+
+
+
+</body>

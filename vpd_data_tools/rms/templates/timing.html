@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.chart .rect-wait {
+  fill: steelblue;
+  opacity: 1.0;
+}
+
+.chart .rect-onscene {
+  fill: orange;
+  opacity: 1.0;
+}
+
+.chart text {
+  fill: black;
+  font: 10px sans-serif;
+  text-anchor: end;
+}
+
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+h3 {text-align: center;}
+
+</style>
+
+<h3>Unit {{unitid}}
+</h3>
+<h3 id="date">
+</h3>
+<svg class="cont">
+<svg class="chart"></svg>
+</svg>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script>
+
+$(document).ready(function(){
+
+    var data = [4, 8, 15, 16, 23, 42];
+    var data = JSON.parse("{{results}}".replace(/&quot;/g,'"'));
+
+    var selectedDate = new Date("{{year}}", "{{month}}" - 1, "{{day}}"),
+        dowMap = {0: "Sun", 1: "Mon", 2: "Tues", 3: "Wed", 4: "Thurs", 5: "Fri", 6: "Sat"},
+        monthMap = {0: "Jan", 1: "Feb", 2: "Mar", 3: "Apr", 4: "May"};
+
+    $("#date").text(dowMap[selectedDate.getDay()] + ", " +
+                            monthMap[selectedDate.getMonth()] + " " +
+                            selectedDate.getDate() + ", " +
+                            selectedDate.getFullYear()
+                    );
+
+
+    var minTs = new Date({{min_ts}} * 1000),
+        maxTs = new Date({{max_ts}} * 1000);
+
+    var barHeight = 30;
+
+    var margin = {top: 20, right: 30, bottom: 30, left: 40},
+        width = 1300 - margin.left - margin.right,
+        height = data.length * barHeight + 50 - margin.top - margin.bottom;
+
+    var x = d3.scale.linear().domain([0, 1]).rangeRound([0, width]);
+
+    var formatTime = function(d) {
+        var a = d * (maxTs.getTime() - minTs.getTime());
+        var b = minTs.getTime() + a;
+        var c = new Date(b);
+        return ('0' + c.getHours()).slice(-2) + ':' + ('0' + c.getMinutes()).slice(-2);
+
+    };
+
+    var xAxis = d3.svg.axis()
+        .scale(x)
+        .orient('bottom')
+        .tickFormat(formatTime)
+        ;
+
+    var cont = d3.select(".cont")
+        .attr("width", width + margin.left + margin.right + 100)
+        .attr("height", height + margin.top + margin.bottom + 100)
+      .append("g");
+
+    var chart = d3.select(".chart")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var bar = chart.selectAll("g")
+        .data(data)
+      .enter().append("g")
+        .attr("transform", function(d, i) { return "translate(0," + (i * barHeight) + ")"; });
+
+    bar.append("rect")
+        .attr("class", "rect-wait")
+        .attr("x", function(d) { return d.x0 * width})
+        .attr("width", function(d) { return (d.x1 - d.x0) * width})
+        .attr("height", barHeight - 1);
+
+    bar.append("rect")
+        .attr("class", "rect-onscene")
+        .attr("x", function(d) { return d.x1 * width})
+        .attr("width", function(d) { return (d.x2 - d.x1) * width})
+        .attr("height", barHeight - 1);
+
+    bar.append("text")
+        .attr("x", function(d) { return d.x2 * width + (d.label.length * 8); })
+        .attr("y", barHeight / 2)
+        .attr("dy", ".35em")
+        .text(function(d) { return d.label; });
+
+
+    chart.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+});
+
+</script>
